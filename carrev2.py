@@ -2,6 +2,8 @@ from tkinter import *
 from math import *
 from time import *
 from numpy import *
+from pdb import *
+import matplotlib.pyplot as plt
 
 def sommet(self):
     x=float(self.pos[0])
@@ -152,6 +154,39 @@ def friction_droite_carre(c,d):
          Jt=array([0,0])
     return(Jt)
 
+z=0
+def rep():
+    global z
+    z=1
+
+def debug():
+    global z,pos,v,w,deltat
+    main.delete(pos,v,w,dt)
+    pos = main.create_text(100,25, text='pos='+str(c.pos), fill='black')
+    v = main.create_text(100,40, text='v='+str(c.v), fill='black')
+    w = main.create_text(100,55, text='w='+str(c.w), fill='black')
+    deltat = main.create_text(75,70, text='dt='+str(dt), fill='black')
+    main.update()
+    if z !=0:
+        z=0
+    else:
+        z=1
+        debug()
+    
+def courbe(c):
+    T,X,Y,Theta=[],[],[],[]
+    for i in c.L:
+        T.append(i[0])
+        X.append(i[1][0])
+        Y.append(i[1][1])
+        Theta.append(i[2])
+    T=array(T)
+    X=array(X)
+    Y=array(Y)
+    Theta=array(Theta)
+    plt.plot(T, Y, "r", label="Y")
+    plt.plot(T, Theta, "b", label="Theta")
+    plt.show()
 
 #test des fonctions detection_collision_droite_carre et recalage_droite_carre ainsi que l'affichage graphique
 #Pas encore de réaction physique fonctionnelle
@@ -160,31 +195,39 @@ for i in range(1):
     canvas_height =1280
     python_green = "#476042"
     master = Tk()
-
+    
     main = Canvas(master, width=canvas_width, height=canvas_height, bg= 'blue')
+    B = Button(master, text='continuer', command=rep)
+    fen = main.create_window(300,100, window=B)
     main.pack()
-   ''' Em= c.m*inner(c.v,c.v)/2+c.I*c.w**2/2+c.m*c.pos[1]*9.80665
-    text = main.create_text(75,60, text=Ec, fill='black')'''
+    
     
     # 3 param à modifier
-    c=Carre(10,30,[1100.0,1200.0],[10.0,0.0], 1.0 , 0.0)
+    c=Carre(10,30,[1100.0,1200.0],[10.0,0.0], 1.0 , 0.1)
     d=Droite(500,pi/9)
     dt=0.1
     
+    pos,v,w,deltat=0,0,0,0
+    Em= c.m*inner(c.v,c.v)/2+c.I*c.w**2/2+c.m*c.pos[1]*9.80665
+    text = main.create_text(100,10, text='Em='+str(Em), fill='black')
     main.create_line(0,canvas_height-d.y,canvas_width,canvas_height-canvas_width*d.a-d.y, width=1)
     points=sommet_aff(c)
     a=main.create_polygon(points, outline='red', fill='yellow', width=1)
+    debug()
+    main.pack()
     master.mainloop()
     eps=10**(-7)
     for i in range(10**8):
+        if c.w != 0:
+            dt=min(dt,abs(pi/(3*c.w)))
         main.after(0)
         c.v[1] -= 9.80665*dt
-        #c.w *= 0.99
+        #c.w *= 0.99a
         c.avance(dt,c.v,c.w)
-        '''print(sign(Em-c.m*inner(c.v,c.v)/2+c.I*c.w**2/2+c.m*c.pos[1]*9.80665))
+        '''print(sign(Em-c.m*inner(c.v,c.v)/2+c.I*c.w**2/2+c.m*c.pos[1]*9.80665))'''
         Em = c.m*inner(c.v,c.v)/2+c.I*c.w**2/2+c.m*c.pos[1]*9.80665
         main.delete(text)
-        text = main.create_text(75,60, text=Em, fill='black')'''
+        text = main.create_text(100,10, text='Em='+str(Em), fill='black')
         if detection_collision_droite_carre(d,c):
             #print(c.pos,c.v)
             dt2=recalage_droite_carre(d,c,eps) #Remise au point de contact
@@ -192,11 +235,14 @@ for i in range(1):
             c.L.append([c.L[-1][0]+dt-dt2,c.pos,c.theta])
             rep_collision_droite_carre(c,d) #chgt des vitesses au point de contact
             c.avance(dt,c.v,c.w)
-            main.after(100)
         main.create_polygon(sommet_aff(c), outline='red', fill='yellow', width=1)
         c.L.append([c.L[-1][0]+dt,c.pos,c.theta])
+        #set_trace()
+        debug()
         main.update()
 
+
+    
 #fin test
 '''
 canvas_width = 200
