@@ -304,7 +304,13 @@ a=main.create_polygon(points, outline='red', fill='yellow', width=1)
 debug()
 main.pack()
 
-for i in range(10**8):
+fin_simu=0
+i=0
+nb_max_dt2_egale_dt_consecutif=5
+
+#for i in range(10**8):
+while (i<10**8 and fin_simu<nb_max_dt2_egale_dt_consecutif):
+    i += 1
     c.v[1] -= 9.80665*dt #action gravitationnelle
     #c.w *= 0.99a
     c.avance(dt,c.v,c.w) #le carre avance entre t et t+dt
@@ -319,8 +325,22 @@ for i in range(10**8):
         a=main.create_polygon(sommet_aff(c), outline='red', fill='green', width=1) #affiche le carre au point de contact
         c.L.append([c.L[-1][0]+dt-dt2,c.pos,c.theta]) #met à jour l'historique des positions (pas très important)
         rep_collision_droite_carre2(c,d) #chgt des vitesses au point de contact. Il y a deux façons de répondre à la collision (selon la loi de conservation considérée): on peut choisir entre rep_collision_droite_carre(c,d) et rep_collision_droite_carre2(c,d) C'est la variable J de ces fonctions qui pose problème
+        if dt2==dt:
+            fin_simu += 1
     else:
+        fin_simu = 0
         main.create_polygon(sommet_aff(c), outline='red', fill='yellow', width=1) #affiche le carre s'il n'y a pas de collision
     c.L.append([c.L[-1][0]+dt,c.pos,c.theta])  #met à jour l'historique des positions (pas très important)
     main.update() #met à jour l affichage
     Emm.append(Em)
+   
+
+texte_fin = main.create_text(500, 100, text='FIN de la simulation', fill='red')
+main.delete(fen)
+bouton_fermer = Button(master, text='Fermer', command=master.destroy)
+bouton_fermer.pack()
+fen2=main.create_window(500,200,window=bouton_fermer)
+main.update()
+
+master.mainloop()
+
